@@ -25,7 +25,7 @@ def parse_frontmatter(text: str) -> dict[str, str]:
 def brief_desc(desc: str) -> str:
     """优先保留中文说明：去掉 Use when 英文段，再按句号截断到合适长度。"""
     # 若含中文，截到 Use when 之前
-    cut = re.split(r"\s+Use when\b", desc, maxsplit=1, flags=re.I)[0].strip()
+    cut = re.split(r"\s*Use when\b", desc, maxsplit=1, flags=re.I)[0].strip()
     # 过长则取前两句（。/.）
     parts = re.split(r"(?<=[。.])\s*", cut)
     parts = [p for p in parts if p]
