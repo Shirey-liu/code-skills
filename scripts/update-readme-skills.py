@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""从各 */SKILL.md 的 name / description 重写 README「技能一览」表。"""
+"""从各 */SKILL.md 的 name / description 重写 README「技能一览」表（只替换表格，不动其它章节）。"""
 from __future__ import annotations
 
 import re
@@ -23,10 +23,15 @@ def parse_frontmatter(text: str) -> dict[str, str]:
 
 
 def brief_desc(desc: str) -> str:
-    desc = re.sub(r"\s*Use when.*$", "", desc, flags=re.I)
-    # 取到第一个中文句号或英文句号
-    m = re.split(r"[。.]", desc, maxsplit=1)
-    return (m[0] if m else desc).strip()
+    """优先保留中文说明：去掉 Use when 英文段，再按句号截断到合适长度。"""
+    # 若含中文，截到 Use when 之前
+    cut = re.split(r"\s+Use when\b", desc, maxsplit=1, flags=re.I)[0].strip()
+    # 过长则取前两句（。/.）
+    parts = re.split(r"(?<=[。.])\s*", cut)
+    parts = [p for p in parts if p]
+    if len(parts) >= 2:
+        return (parts[0] + parts[1]).strip()
+    return cut
 
 
 def build_table() -> str:
@@ -34,26 +39,29 @@ def build_table() -> str:
     for skill_md in sorted(ROOT.glob("*/SKILL.md")):
         meta = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
         name = meta.get("name") or skill_md.parent.name
-        brief = brief_desc(meta.get("description", ""))
+        brief = brief_desc(meta.get("description", "")) or "（待补充 description）"
         rows.append((name, skill_md.parent.name, brief))
     lines = ["| 技能 | 主要做什么 |", "|------|------------|"]
     for name, dirname, brief in rows:
         lines.append(f"| [{name}](./{dirname}/) | {brief} |")
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines)
 
 
 def main() -> None:
     text = README.read_text(encoding="utf-8")
     table = build_table()
+    # 只替换「技能一览」标题后、下一个 ## 之前的表格块
     pattern = re.compile(
-        r"(## 技能一览\n\n)(?:\| 技能 \| 主要做什么 \|.*?\n(?:\|.*\n)*)",
-        re.S,
+        r"(## 技能一览\n\n)(\| 技能 \| 主要做什么 \|\n\|------\|------------\|\n(?:\|.*\|\n)*)",
+        re.M,
     )
-    if not pattern.search(text):
-        raise SystemExit("README 中未找到「技能一览」表格，请手动检查")
-    new_text = pattern.sub(rf"\1{table}", text, count=1)
+    m = pattern.search(text)
+    if not m:
+        raise SystemExit("README 中未找到「技能一览」标准表格，请手动检查格式")
+    new_text = text[: m.start(2)] + table + "\n" + text[m.end(2) :]
     README.write_text(new_text, encoding="utf-8")
     print(f"Updated skill table in {README}")
+    print(table)
 
 
 if __name__ == "__main__":
