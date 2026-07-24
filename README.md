@@ -1,6 +1,6 @@
 # code-skills
 
-个人 Cursor Agent Skills 仓库。克隆后按需软链到 `~/.cursor/skills/` 使用。
+个人 Cursor / Claude Agent Skills 仓库。克隆后按需软链到 `~/.cursor/skills/`（或 `~/.claude/skills/`）使用。
 
 ## 技能一览
 
@@ -16,12 +16,44 @@
 git clone https://github.com/Shirey-liu/code-skills.git ~/xkw/code/SKILL/code-skills
 
 # 需要哪个链哪个
-ln -s ~/xkw/code/SKILL/code-skills/frontend-bugfix-assistant ~/.cursor/skills/frontend-bugfix-assistant
-ln -s ~/xkw/code/SKILL/code-skills/mr-experience-summary ~/.cursor/skills/mr-experience-summary
-ln -s ~/xkw/code/SKILL/code-skills/figma-mcp-pixel-codegen ~/.cursor/skills/figma-mcp-pixel-codegen
+ln -sfn ~/xkw/code/SKILL/code-skills/frontend-bugfix-assistant ~/.cursor/skills/frontend-bugfix-assistant
+ln -sfn ~/xkw/code/SKILL/code-skills/mr-experience-summary ~/.cursor/skills/mr-experience-summary
+ln -sfn ~/xkw/code/SKILL/code-skills/figma-mcp-pixel-codegen ~/.cursor/skills/figma-mcp-pixel-codegen
 ```
 
-已有同名目录时，先备份或删掉本地副本再链。
+Claude Code 可同样链到 `~/.claude/skills/<skill-name>`。已有同名目录时，先备份或删掉本地副本再链。
+
+## frontend-bugfix-assistant 与 Teambition MCP
+
+该 skill 在拿到 tb 链接后会**优先调用** `QueryTaskV3`（Claude 侧常见名：`mcp_teambition-mcp_QueryTaskV3`）。  
+请先在客户端配置 Teambition 开放平台 MCP，否则 Agent 会停下来输出接入指引。
+
+在 `~/.cursor/mcp.json`（或 Claude 的 `mcpServers`）中增加：
+
+```json
+{
+  "mcpServers": {
+    "teambition-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@tng/teambition-openapi-mcp",
+        "mcp",
+        "-a",
+        "<your_app_id>",
+        "-s",
+        "<your_app_secret>",
+        "-o",
+        "<your_org_id>",
+        "-b",
+        "https://open.teambition.com/api"
+      ]
+    }
+  }
+}
+```
+
+凭证从 [Teambition 开放平台](https://open.teambition.com/) 创建应用获取。更完整说明见 skill 内「Teambition MCP 接入指引」。
 
 ## 维护约定
 
