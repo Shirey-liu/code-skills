@@ -7,7 +7,7 @@
 | 技能 | 主要做什么 |
 |------|------------|
 | [figma-mcp-pixel-codegen](./figma-mcp-pixel-codegen/) | 通过 Figma MCP 将 Figma 设计转换为像素级精确的 UI 代码。 |
-| [frontend-bugfix-assistant](./frontend-bugfix-assistant/) | 前端 Bug 自动化修复助手。解析 Teambition（tb）缺陷链接，优先用 Teambition MCP（QueryTaskV3）拉标题与备注；MCP 不通时引导按官方方式接入再继续。 |
+| [frontend-bugfix-assistant](./frontend-bugfix-assistant/) | 前端 Bug 自动化修复助手。解析 Teambition（tb）缺陷链接，优先用 Teambition MCP（QueryTaskV3）拉标题与备注；MCP 未配置时简短引导接入。 |
 | [mr-experience-summary](./mr-experience-summary/) | 任务/MR 完成后输出精炼复盘并写入 docs/retros/。总结任务名、做什么、解决了什么、注意点、冲突与坑。 |
 
 ## 安装（Cursor）
@@ -25,10 +25,7 @@ Claude Code 可同样链到 `~/.claude/skills/<skill-name>`。已有同名目录
 
 ## frontend-bugfix-assistant 与 Teambition MCP
 
-该 skill 在拿到 tb 链接后会**优先调用** `QueryTaskV3`（Claude 侧常见名：`mcp_teambition-mcp_QueryTaskV3`）。  
-请先在客户端配置 Teambition 开放平台 MCP，否则 Agent 会停下来输出接入指引。
-
-在 `~/.cursor/mcp.json`（或 Claude 的 `mcpServers`）中增加：
+拿到 tb 链接后会优先调 `QueryTaskV3`。未配置时 Agent 只做简短引导，详细配置放在这里：
 
 ```json
 {
@@ -39,21 +36,17 @@ Claude Code 可同样链到 `~/.claude/skills/<skill-name>`。已有同名目录
         "-y",
         "@tng/teambition-openapi-mcp",
         "mcp",
-        "-a",
-        "<your_app_id>",
-        "-s",
-        "<your_app_secret>",
-        "-o",
-        "<your_org_id>",
-        "-b",
-        "https://open.teambition.com/api"
+        "-a", "<your_app_id>",
+        "-s", "<your_app_secret>",
+        "-o", "<your_org_id>",
+        "-b", "https://open.teambition.com/api"
       ]
     }
   }
 }
 ```
 
-凭证从 [Teambition 开放平台](https://open.teambition.com/) 创建应用获取。更完整说明见 skill 内「Teambition MCP 接入指引」。
+写入 `~/.cursor/mcp.json`（或 Claude `mcpServers`），凭证见 [开放平台](https://open.teambition.com/)。
 
 ## 维护约定
 
